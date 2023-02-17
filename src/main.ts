@@ -2,7 +2,7 @@ import * as superagent from "superagent"
 import * as path from "path"
 import * as fs from "fs"
 import * as koa from "koa"
-import * as koaBody from "koa-body"
+import{koaBody} from "koa-body"
 import * as cors from "koa2-cors"
 
 
@@ -70,6 +70,12 @@ async function main() {
     let app = new koa()
     let port = Number(config.listenPort)
     app.use(cors())
+    app.use(koaBody(
+        {
+            // 这个一定要加,会影响上传的文件的
+            multipart: true
+        }
+    ))
     app.use(async ctx => {
         let url = ctx.url
         let start = 1
