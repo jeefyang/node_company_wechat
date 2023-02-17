@@ -1,12 +1,14 @@
 {
-    // 企业ID
+    /** Secret密钥 */
     "WECOM_CID": "",
-    // Secret密钥
+    /** Secret密钥 */
     "WECOM_SECRET": "",
-    // AgentId
+    /** AgentId */
     "WECOM_AID": "",
-    // 发送给谁,一般为@all
+     /** 发送给谁,一般为@all */
     "WECOM_TOUID": "",
-    // 发送明文密钥,需要与链接对应
-    "SendKey":""
+    /** 发送明文密钥,需要与链接对应 */
+    "SendKey":"",
+    /** 监听端口 */
+    "listenPort":""
 }

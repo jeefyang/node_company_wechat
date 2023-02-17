@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试post请求</title>
+</head>
+
+<body>
+    <script>
+        let port = "3000"
+        let sendKey="jeefyang"
+        let btn = document.createElement("button")
+        document.body.append(btn)
+        btn.innerHTML = "测试"
+        btn.onclick = () => {
+            return new Promise((res, _rej) => {
+                let data={
+                    msgtype:"text",
+                    content:`
+                    你好 今天天气真好,
+                    我们去旅游把
+                    娃哈哈
+                    `
+                }
+                const xhr = new XMLHttpRequest();
+                xhr.open("post", `http://localhost:${port}/${sendKey}/post`);
+                let check = false;
+                xhr.onreadystatechange = (_e) => {
+                    if (!check && xhr.status >= 200 && xhr.status < 300) {
+                        if (xhr.responseText && xhr.responseText != "") {
+                            check = true;
+                            res(xhr.responseText);
+                        }
+                    }
+                };
+                xhr.setRequestHeader("Content-type", "application/json");
+                console.log(JSON.stringify(data))
+                xhr.send(JSON.stringify(data));
+            });
+        }
+
+    </script>
+</body>
+
+</html>
