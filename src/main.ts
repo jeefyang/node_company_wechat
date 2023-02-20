@@ -2,7 +2,7 @@ import * as superagent from "superagent"
 import * as path from "path"
 import * as fs from "fs"
 import * as koa from "koa"
-import{koaBody} from "koa-body"
+import { koaBody } from "koa-body"
 import * as cors from "koa2-cors"
 
 
@@ -19,7 +19,17 @@ type configType = {
     "SendKey": string
     /** 监听端口 */
     "listenPort": number
+    /** 记录操作文件,可不写 */
+    "logFile"?: string
 }
+
+type logType = {
+    createDate: string
+    type: "post" | "get",
+    msgid: string
+    errcode: number,
+    errmsg: string,
+} & sendToWechat_opType
 
 type sendToWechat_opType = {
     content: string
@@ -28,8 +38,39 @@ type sendToWechat_opType = {
 let configUrl = "./config.jsonc"
 let str = fs.readFileSync(configUrl, "utf8")
 let config: configType = eval("(" + str + ")")
-async function sendToWechat(op: sendToWechat_opType) {
+let logData: logType[] = undefined
 
+if (config.logFile) {
+    if (!fs.existsSync(config.logFile)) {
+        fs.writeFileSync(config.logFile, "[]")
+    }
+    let str = fs.readFileSync(config.logFile, "utf8") || "[]"
+    try {
+        let json = JSON.parse(str)
+        logData = json
+    }
+    catch (e) {
+        console.warn("记录数据个数不对,自动重置")
+        logData = []
+    }
+    if (!Array.isArray(logData)) {
+        logData = []
+    }
+}
+
+/** 记录大法 */
+function logFunc(op: logType) {
+    if (!logData) {
+        return
+    }
+    logData.push(op)
+    let str = JSON.stringify(logData)
+    fs.writeFileSync(config.logFile, str)
+}
+
+/** 发送微信大法 */
+async function sendToWechat(op: sendToWechat_opType) {
+    console.log(op)
     const getTokenUrl = `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${config.WECOM_CID}&corpsecret=${config.WECOM_SECRET}`
     const getTokenRes = await superagent.get(getTokenUrl)
     const accessToken = (<any>getTokenRes.body).access_token
@@ -56,16 +97,11 @@ async function sendToWechat(op: sendToWechat_opType) {
 
     }
     const sendMsgRes = await superagent.post(sendMsgUrl).send(sendData)
-    console.log("发送成功")
     console.log(sendMsgRes.body)
     return sendMsgRes.body
 }
 
-// sendToWechat({
-//     content: "123",
-//     msgtype: "text"
-// })
-
+/** 主进程 */
 async function main() {
     let app = new koa()
     let port = Number(config.listenPort)
@@ -101,6 +137,17 @@ async function main() {
                 content: msgStr,
                 msgtype: "text"
             })
+            let logOP: logType = {
+                createDate: new Date().toString(),
+                type: "get",
+                content: msgStr,
+                msgtype: "text",
+                msgid: msg.msgid,
+                errcode: msg.errcode,
+                errmsg: msg.errmsg
+            }
+            logFunc(logOP)
+            console.log(msg)
             return msg
         }
         let postStr = "/post"
@@ -116,10 +163,22 @@ async function main() {
                 console.warn('提供数据错误')
                 return
             }
-            console.log(op)
-            return
-            // let msg = await sendToWechat(op)
-            // return msg
+            // console.log(op)
+
+            // return
+            let msg = await sendToWechat(op)
+            let logOP: logType = {
+                createDate: new Date().toString(),
+                type: "post",
+                content: op.content,
+                msgtype: op.msgtype,
+                msgid: msg.msgid,
+                errcode: msg.errcode,
+                errmsg: msg.errmsg
+            }
+            logFunc(logOP)
+            console.log(msg)
+            return msg
         }
         console.log(sendKey)
     })
