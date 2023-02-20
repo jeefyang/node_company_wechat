@@ -1,6 +1,7 @@
 config.jsonc
 
 debug
+build
 node_modules
 
 *.log
