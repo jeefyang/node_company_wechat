@@ -114,6 +114,7 @@ async function main() {
     ))
     app.use(async ctx => {
         let url = ctx.url
+        console.log(url)
         let start = 1
         let end = start + config.SendKey.length
         let sendKey = url.slice(start, end)
