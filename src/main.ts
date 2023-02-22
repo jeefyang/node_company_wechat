@@ -149,6 +149,7 @@ async function main() {
             }
             logFunc(logOP)
             console.log(msg)
+            ctx.body = msg
             return msg
         }
         let postStr = "/post"
@@ -179,6 +180,7 @@ async function main() {
             }
             logFunc(logOP)
             console.log(msg)
+            ctx.body = msg
             return msg
         }
         console.log(sendKey)
